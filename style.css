@@ -1,4 +1,27 @@
-body {
-    font: 12px sans-serif;
-}
+svg {
+    font: 10px sans-serif;
+  }
+  
+  .unselected path {
+    fill: none;
+    stroke: rgba(221, 221, 221, 0.897); 
+    shape-rendering: crispEdges;
+  }
+  
+  .selected path {
+    fill: none;
+    stroke: rgba(50, 156, 175, 0.411);
+  
+  }
+  
+  .brush .extent {
+    fill-opacity: .3;
+    stroke: #fff;
+  
+    shape-rendering: crispEdges;
+  }
+  
+  #b1 {
+    float:right;
 
+  }
