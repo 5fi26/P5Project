@@ -17,34 +17,32 @@ var svg = d3.select("body").append("svg")
   .append("g")
   .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-d3.csv("colleges1.csv", function(error, data) {
+d3.csv("colleges.csv", function(error, data) {
     if (error) {
       console.log("error reading csv.");
     }
-    dimensions = d3.keys(data[0]);
+    //d3.keys(data[0]) gives the categories.
+    //data[0] gives the first of every category.
+
+    dimensions = ["Admission Rate", 
+    "Average Cost", "Median Debt", "Median Debt on Withdrawal", 
+    "Average Family Income", "Median Family Income", "Expenditure Per Student" , "% Federal Loans"];
+    
     x.domain(dimensions);
 
   dimensions.forEach(function(d) {  
     var value = data.map(function(p) {
-      console.log(p[d]);
       return p[d];
     }); 
 
     if (value.every(function(v) {
       return (parseFloat(v) == v)
     })) { 
-     y[d] = d3.scaleLinear()
+        y[d] = d3.scaleLinear()
         .domain(d3.extent(data, function(p) { 
             return +p[d]; 
         }))
         .range([height, 0])
-    }
-    else  {           
-      y[d] = d3.scalePoint()
-          .domain(value.filter(function(v, i) {
-            return value.indexOf(v) == i;
-          }))
-          .range([height, 0].padding(2));
     }
   })
 
@@ -59,7 +57,13 @@ d3.csv("colleges1.csv", function(error, data) {
     .data(data)
     .enter()
     .append("path")
-    .attr("d", path);
+    .attr("d", mapData);
+
+  //data in the form colleges: college
+  //return {colleges: d.Name}
+  //var col2data = data.map(function(d) { return {colleges: d.Name} });
+
+  var tooltip = d3.select("body").append("div").attr("class", "toolTip");
 
   selected = svg.append("g")
     .attr("class", "selected")
@@ -67,7 +71,12 @@ d3.csv("colleges1.csv", function(error, data) {
     .data(data)
     .enter()
     .append("path")
-    .attr("d", path);
+    .attr("d", mapData)
+    .on("mouseover", function(d) {
+      tooltip
+        .style("display", "inline-block")
+        .html((d.Name));
+    });
 
   var g = svg.selectAll(".data")
     .data(dimensions)
@@ -93,12 +102,33 @@ d3.csv("colleges1.csv", function(error, data) {
       .each(function(d) {
         d3.select(this).call(y[d].brush = d3.brushY()
         .extent([[-3, 3], [9, height]])
+        .on("start", brushstart)
+        .on("brush", gobrush)
         .on("brush", brushchart));
       })
 });
 
-function clearSelected() {
+function brushstart(selectionName) {
+  selected.style("display", "none")
+  
+  var dimensionsIndex = dimensions.indexOf(selectionName);
+
+  extents[dimensionsIndex] = [0, 0];
+
+  selected.style("display", function(d) {
+    return dimensions.every(function(p, i) {
+        if(extents[i][0]==0 && extents[i][0]==0) {
+            return true;
+        }
+      return extents[i][1] <= d[p] && d[p] <= extents[i][0];
+    }) ? null : "none";
+  });
 }
+
+function gobrush() {
+  d3.event.sourceEvent.stopPropagation();
+}
+
 
 function position(d) {
   if (drag[d] == null) {
@@ -107,7 +137,7 @@ function position(d) {
   else return v;
 }
 
-function path(d) {
+function mapData(d) {
   return line(dimensions.map(function(p) { 
     return [ position(p), y[p](d[p]) ]; 
   }));
@@ -117,9 +147,11 @@ function path(d) {
 function brushchart() {    
     for(var i = 0; i < dimensions.length; i++){
         if(d3.event.target == y[ dimensions[i] ].brush) {
+            console.log(y[dimensions[i]].Name);
             extents[i] = d3.event.selection
                         .map(y[ dimensions[i] ]
                         .invert, y[ dimensions[i] ]);
+                        
         }
     }
       selected.style("display", function(d) {
