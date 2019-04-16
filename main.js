@@ -1,16 +1,15 @@
-var margin = {top: 30, right: 10, bottom: 10, left: 10},
-    width = 1450 - margin.left - margin.right,
-    height = 500 - margin.top - margin.bottom;
+var margin = {top: 50, right: 25, bottom: 25, left: 25};
+var width = 1450 - margin.left - margin.right;
+var height = 500 - margin.top - margin.bottom;
 
-var x = d3.scaleBand().rangeRound([0, width]).padding(.5),
-    y = {},
-    drag = {};
+var x = d3.scaleBand().rangeRound([0, width]).padding(.5);
 
 var line = d3.line(),
     unselected,
     selected,
     extents;
 
+var y = {},drag = {};
 var svg = d3.select("body").append("svg")
   .attr("width", width + margin.left + margin.right)
   .attr("height", height + margin.top + margin.bottom)
@@ -21,8 +20,6 @@ d3.csv("colleges.csv", function(error, data) {
     if (error) {
       console.log("error reading csv.");
     }
-    //d3.keys(data[0]) gives the categories.
-    //data[0] gives the first of every category.
 
     dimensions = ["Admission Rate", 
     "Average Cost", "Median Debt", "Median Debt on Withdrawal", 
@@ -30,14 +27,15 @@ d3.csv("colleges.csv", function(error, data) {
     
     x.domain(dimensions);
 
-  dimensions.forEach(function(d) {  
+  dimensions.forEach(function(d) {
+    //gets all the values from dimensions  
     var value = data.map(function(p) {
       return p[d];
     }); 
 
     if (value.every(function(v) {
       return (parseFloat(v) == v)
-    })) { 
+    }) ) { 
         y[d] = d3.scaleLinear()
         .domain(d3.extent(data, function(p) { 
             return +p[d]; 
@@ -45,12 +43,7 @@ d3.csv("colleges.csv", function(error, data) {
         .range([height, 0])
     }
   })
-
-  extents = dimensions.map(function(p) { 
-    return [0,0]; 
-  });
-
-
+  
   unselected = svg.append("g")
     .attr("class", "unselected")
     .selectAll("path")
@@ -63,7 +56,9 @@ d3.csv("colleges.csv", function(error, data) {
   //return {colleges: d.Name}
   //var col2data = data.map(function(d) { return {colleges: d.Name} });
 
-  var tooltip = d3.select("body").append("div").attr("class", "toolTip");
+  var tooltip = d3.select("body")
+  .append("div")
+  .attr("class", "tooltip");
 
   selected = svg.append("g")
     .attr("class", "selected")
@@ -84,7 +79,7 @@ d3.csv("colleges.csv", function(error, data) {
     .append("g")
     .attr("transform", function(d) {  return "translate(" + x(d) + ")"; })
  
-  // Add an axis and title.
+  // Add axis
   g.append("g")
       .attr("class", "axis")
       .each(function(d) {  
@@ -92,43 +87,44 @@ d3.csv("colleges.csv", function(error, data) {
       })
       .append("text")
       .attr("fill", "black")
-      .style("text-anchor", "middle")
       .attr("y", -20) 
+      .style("text-anchor", "middle")
       .text(function(d) { return d; });
 
+  extents = dimensions.map(function(p) { 
+    return [0,0]; 
+  });
+      
   // Add and store a brush for each axis.
   g.append("g")
       .attr("class", "brush")
       .each(function(d) {
         d3.select(this).call(y[d].brush = d3.brushY()
         .extent([[-3, 3], [9, height]])
-        .on("start", brushstart)
-        .on("brush", gobrush)
+        .on("start", start)
+        .on("brush", brushing)
         .on("brush", brushchart));
       })
 });
 
-function brushstart(selectionName) {
-  selected.style("display", "none")
-  
-  var dimensionsIndex = dimensions.indexOf(selectionName);
+function brushing() {
+  d3.event.sourceEvent.stopPropagation();
+}
 
-  extents[dimensionsIndex] = [0, 0];
+function start(d) {
+  selected.style("display", "none")
+  var index = dimensions.indexOf(d);
+  extents[index] = [0,0];
 
   selected.style("display", function(d) {
     return dimensions.every(function(p, i) {
-        if(extents[i][0]==0 && extents[i][0]==0) {
+        if(extents[i][0] == 0 && extents[i][0] == 0) {
             return true;
         }
       return extents[i][1] <= d[p] && d[p] <= extents[i][0];
     }) ? null : "none";
   });
 }
-
-function gobrush() {
-  d3.event.sourceEvent.stopPropagation();
-}
-
 
 function position(d) {
   if (drag[d] == null) {
@@ -147,19 +143,17 @@ function mapData(d) {
 function brushchart() {    
     for(var i = 0; i < dimensions.length; i++){
         if(d3.event.target == y[ dimensions[i] ].brush) {
-            console.log(y[dimensions[i]].Name);
             extents[i] = d3.event.selection
-                        .map(y[ dimensions[i] ]
-                        .invert, y[ dimensions[i] ]);
-                        
+              .map(y[ dimensions[i] ]
+              .invert, y[ dimensions[i] ]);                  
         }
     }
-      selected.style("display", function(d) {
-        return dimensions.every(function(p, i) {
-            if(extents[i][0] == 0) {
-                return true;
-            }
-          return extents[i][1] <= d[p] && d[p] <= extents[i][0];
-        }) ? null : "none";
-      });
+  selected.style("display", function(d) {
+    return dimensions.every(function(p, i) {
+      if(extents[i][0] == 0) {
+          return true;
+      }
+      return extents[i][1] <= d[p] && d[p] <= extents[i][0];
+    }) ? null : "none";
+  });
 }
