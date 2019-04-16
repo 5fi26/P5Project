@@ -1,5 +1,5 @@
 svg {
-    font: 10px sans-serif;
+    font: 12px sans-serif;
   }
   
   .unselected path {
@@ -17,11 +17,9 @@ svg {
   .brush .extent {
     fill-opacity: .3;
     stroke: #fff;
-  
     shape-rendering: crispEdges;
   }
   
   #b1 {
     float:right;
-
   }
