@@ -57,8 +57,11 @@ d3.csv("colleges.csv", function(error, data) {
   //var col2data = data.map(function(d) { return {colleges: d.Name} });
 
   var tooltip = d3.select("body")
-  .append("div")
-  .attr("class", "tooltip");
+    .append("div")
+    .attr("class", "tooltip")
+  
+  
+
 
   selected = svg.append("g")
     .attr("class", "selected")

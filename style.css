@@ -1,6 +1,19 @@
 svg {
     font: 12px sans-serif;
   }
+
+#circle {
+    background: #f00;
+    width: 1000px;
+    height: 1000px;
+    border-radius: 50%;
+}
+circleSVG {
+  transform: translate(1500px, 500px)
+}
+.tooltip {
+  transform: translateX(75px)
+}
   
   .unselected path {
     fill: none;
@@ -10,6 +23,7 @@ svg {
   
   .selected path {
     fill: none;
+
     stroke: rgba(50, 156, 175, 0.411);
   
   }
