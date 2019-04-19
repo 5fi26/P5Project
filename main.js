@@ -21,29 +21,29 @@ d3.csv("colleges.csv", function(error, data) {
       console.log("error reading csv.");
     }
 
-    dimensions = ["Admission Rate", 
-    "Average Cost", "Median Debt", "Median Debt on Withdrawal", 
+    dimensions = ["Admission Rate",
+    "Average Cost", "Median Debt", "Median Debt on Withdrawal",
     "Average Family Income", "Median Family Income", "Expenditure Per Student" , "% Federal Loans"];
-    
+
     x.domain(dimensions);
 
   dimensions.forEach(function(d) {
-    //gets all the values from dimensions  
+    //gets all the values from dimensions
     var value = data.map(function(p) {
       return p[d];
-    }); 
+    });
 
     if (value.every(function(v) {
       return (parseFloat(v) == v)
-    }) ) { 
+    }) ) {
         y[d] = d3.scaleLinear()
-        .domain(d3.extent(data, function(p) { 
-            return +p[d]; 
+        .domain(d3.extent(data, function(p) {
+            return +p[d];
         }))
         .range([height, 0])
     }
   })
-  
+
   unselected = svg.append("g")
     .attr("class", "unselected")
     .selectAll("path")
@@ -59,8 +59,8 @@ d3.csv("colleges.csv", function(error, data) {
   var tooltip = d3.select("body")
     .append("div")
     .attr("class", "tooltip")
-  
-  
+
+
 
 
   selected = svg.append("g")
@@ -74,6 +74,7 @@ d3.csv("colleges.csv", function(error, data) {
       tooltip
         .style("display", "inline-block")
         .html((d.Name));
+      addNameOfCircle(d);
     });
 
   var g = svg.selectAll(".data")
@@ -81,23 +82,23 @@ d3.csv("colleges.csv", function(error, data) {
     .enter()
     .append("g")
     .attr("transform", function(d) {  return "translate(" + x(d) + ")"; })
- 
+
   // Add axis
   g.append("g")
       .attr("class", "axis")
-      .each(function(d) {  
+      .each(function(d) {
         d3.select(this).call(d3.axisLeft(y[d]));
       })
       .append("text")
       .attr("fill", "black")
-      .attr("y", -20) 
+      .attr("y", -20)
       .style("text-anchor", "middle")
       .text(function(d) { return d; });
 
-  extents = dimensions.map(function(p) { 
-    return [0,0]; 
+  extents = dimensions.map(function(p) {
+    return [0,0];
   });
-      
+
   // Add and store a brush for each axis.
   g.append("g")
       .attr("class", "brush")
@@ -112,6 +113,19 @@ d3.csv("colleges.csv", function(error, data) {
 
 function brushing() {
   d3.event.sourceEvent.stopPropagation();
+}
+
+function addNameOfCircle(d) {
+
+  document.getElementById("white").innerHTML = d["% White"]
+  document.getElementById("black").innerHTML = d["% Black"]
+  document.getElementById("hispanic").innerHTML = d["% Hispanic"]
+  document.getElementById("asian").innerHTML = d["% Asian"]
+  document.getElementById("indian").innerHTML = d["% American Indian"]
+  document.getElementById("pacific").innerHTML = d["% Pacific Islander"]
+  document.getElementById("biracial").innerHTML = d["% Biracial"]
+
+
 }
 
 function start(d) {
@@ -137,18 +151,18 @@ function position(d) {
 }
 
 function mapData(d) {
-  return line(dimensions.map(function(p) { 
-    return [ position(p), y[p](d[p]) ]; 
+  return line(dimensions.map(function(p) {
+    return [ position(p), y[p](d[p]) ];
   }));
 }
 
-//Brush data 
-function brushchart() {    
+//Brush data
+function brushchart() {
     for(var i = 0; i < dimensions.length; i++){
         if(d3.event.target == y[ dimensions[i] ].brush) {
             extents[i] = d3.event.selection
               .map(y[ dimensions[i] ]
-              .invert, y[ dimensions[i] ]);                  
+              .invert, y[ dimensions[i] ]);
         }
     }
   selected.style("display", function(d) {
