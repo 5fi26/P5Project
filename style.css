@@ -48,3 +48,24 @@ circleSVG {
   background: #000
 
 }
+
+#block_container
+{
+    text-align:center;
+}
+
+#white,#black,#hispanic,#asian,#indian,#pacific,#biracial
+{
+  display: inline;
+}
+
+#text_container
+{
+    text-align:center;
+}
+
+#whiteText,#blackText,#hispanicText,#asianText,#indianText,#pacificText,#biracialText
+{
+  display: inline;
+  font-size: 10px;
+}
