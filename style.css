@@ -4,8 +4,8 @@ svg {
 
 #circle {
     background: #f00;
-    width: 1000px;
-    height: 1000px;
+    width: 100px;
+    height: 100px;
     border-radius: 50%;
 }
 circleSVG {
@@ -41,6 +41,7 @@ circleSVG {
   .circle {
   width: 100px;
   height: 100px;
+  position: static;
   border-radius: 50%;
   font-size: 30px;
   line-height: 100px;
@@ -67,5 +68,6 @@ circleSVG {
 #whiteText,#blackText,#hispanicText,#asianText,#indianText,#pacificText,#biracialText
 {
   display: inline;
+  color:white;
   font-size: 10px;
 }

@@ -7,11 +7,11 @@ var x = d3.scaleBand().rangeRound([0, width]).padding(.5);
 var line = d3.line(),
     unselected,
     selected,
-    extents;
+    graph;
 
 var y = {},drag = {};
 var svg = d3.select("body").append("svg")
-  .attr("width", width + margin.left + margin.right)
+  .attr("width", width + margin.right + margin.left)
   .attr("height", height + margin.top + margin.bottom)
   .append("g")
   .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
@@ -22,23 +22,23 @@ d3.csv("colleges.csv", function(error, data) {
     }
 
     dimensions = ["Admission Rate",
-    "Average Cost", "Median Debt", "Median Debt on Withdrawal",
-    "Average Family Income", "Median Family Income", "Expenditure Per Student" , "% Federal Loans"];
+    "Average Cost", "Average Family Income", "Median Debt on Withdrawal",
+    "Median Debt", "Median Family Income", "Expenditure Per Student" , "% Federal Loans"];
 
     x.domain(dimensions);
 
   dimensions.forEach(function(d) {
     //gets all the values from dimensions
-    var value = data.map(function(p) {
-      return p[d];
+    var value = data.map(function(k) {
+      return k[d];
     });
 
-    if (value.every(function(v) {
-      return (parseFloat(v) == v)
+    if (value.every(function(i) {
+      return (parseFloat(i) == i)
     }) ) {
         y[d] = d3.scaleLinear()
-        .domain(d3.extent(data, function(p) {
-            return +p[d];
+        .domain(d3.extent(data, function(k) {
+            return +k[d];
         }))
         .range([height, 0])
     }
@@ -61,8 +61,6 @@ d3.csv("colleges.csv", function(error, data) {
     .attr("class", "tooltip")
 
 
-
-
   selected = svg.append("g")
     .attr("class", "selected")
     .selectAll("path")
@@ -73,7 +71,7 @@ d3.csv("colleges.csv", function(error, data) {
     .on("mouseover", function(d) {
       tooltip
         .style("display", "inline-block")
-        .html((d.Name));
+        .html((d.Name + "- " + d.Control));
       addNameOfCircle(d);
     });
 
@@ -90,12 +88,12 @@ d3.csv("colleges.csv", function(error, data) {
         d3.select(this).call(d3.axisLeft(y[d]));
       })
       .append("text")
-      .attr("fill", "black")
       .attr("y", -20)
+      .attr("fill", "black")
       .style("text-anchor", "middle")
       .text(function(d) { return d; });
-
-  extents = dimensions.map(function(p) {
+  
+  graph = dimensions.map(function(p) {
     return [0,0];
   });
 
@@ -106,14 +104,9 @@ d3.csv("colleges.csv", function(error, data) {
         d3.select(this).call(y[d].brush = d3.brushY()
         .extent([[-3, 3], [9, height]])
         .on("start", start)
-        .on("brush", brushing)
         .on("brush", brushchart));
       })
 });
-
-function brushing() {
-  d3.event.sourceEvent.stopPropagation();
-}
 
 function addNameOfCircle(d) {
 
@@ -128,22 +121,41 @@ function addNameOfCircle(d) {
 
 }
 
+//Brush data
+function brushchart() {
+  for(var i = 0; i < dimensions.length; i++){
+      if(d3.event.target == y[ dimensions[i] ].brush) {
+          graph[i] = d3.event.selection
+            .map(y[ dimensions[i] ]
+            .invert, y[ dimensions[i] ]);
+      }
+  }
+selected.style("display", function(d) {
+  return dimensions.every(function(p, i) {
+    if(graph[i][0] == 0) {
+        return true;
+    }
+    return d[p] > graph[i][1] && d[p] <= graph[i][0];
+  }) ? null : "none";
+});
+}
+
 function start(d) {
   selected.style("display", "none")
-  var index = dimensions.indexOf(d);
-  extents[index] = [0,0];
+  graph[dimensions.indexOf(d)] = [0,0];
 
   selected.style("display", function(d) {
     return dimensions.every(function(p, i) {
-        if(extents[i][0] == 0 && extents[i][0] == 0) {
+        if(graph[i][0] == 0) {
             return true;
+        } else  {
+          return d[p] > graph[i][1] && d[p] <= graph[i][0];
         }
-      return extents[i][1] <= d[p] && d[p] <= extents[i][0];
     }) ? null : "none";
   });
 }
 
-function position(d) {
+function pos(d) {
   if (drag[d] == null) {
     return x(d);
   }
@@ -152,25 +164,6 @@ function position(d) {
 
 function mapData(d) {
   return line(dimensions.map(function(p) {
-    return [ position(p), y[p](d[p]) ];
+    return [ pos(p), y[p](d[p]) ];
   }));
-}
-
-//Brush data
-function brushchart() {
-    for(var i = 0; i < dimensions.length; i++){
-        if(d3.event.target == y[ dimensions[i] ].brush) {
-            extents[i] = d3.event.selection
-              .map(y[ dimensions[i] ]
-              .invert, y[ dimensions[i] ]);
-        }
-    }
-  selected.style("display", function(d) {
-    return dimensions.every(function(p, i) {
-      if(extents[i][0] == 0) {
-          return true;
-      }
-      return extents[i][1] <= d[p] && d[p] <= extents[i][0];
-    }) ? null : "none";
-  });
 }
